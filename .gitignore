@@ -20,7 +20,6 @@ lib64/
 parts/
 sdist/
 var/
-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
@@ -43,7 +42,7 @@ htmlcov/
 .cache
 nosetests.xml
 coverage.xml
-*.cover
+*,cover
 .hypothesis/
 
 # Translations
@@ -53,6 +52,10 @@ coverage.xml
 # Django stuff:
 *.log
 local_settings.py
+*.sqlite3
+
+#Sparx EA
+*.ldb
 
 # Flask stuff:
 instance/
@@ -67,7 +70,7 @@ docs/_build/
 # PyBuilder
 target/
 
-# Jupyter Notebook
+# IPython Notebook
 .ipynb_checkpoints
 
 # pyenv
@@ -76,26 +79,43 @@ target/
 # celery beat schedule file
 celerybeat-schedule
 
-# SageMath parsed files
-*.sage.py
-
 # dotenv
 .env
 
 # virtualenv
-.venv
 venv/
 ENV/
 
 # Spyder project settings
 .spyderproject
-.spyproject
 
 # Rope project settings
 .ropeproject
 
-# mkdocs documentation
-/site
+# IDE
+*.sublime-project
+*.sublime-workspace
 
-# mypy
-.mypy_cache/
+# Visual Studio
+*.pyproj
+*.pyproj.user
+*.sln
+obj/
+.vs/
+bin/
+UpgradeLog.htm
+web.config
+web.debug.config
+web.config
+/TasksLocal/
+/TasksRemote/
+/*.zip
+/manifest.txt
+/projectDirectories.txt
+/.vagrant/
+/.pydevproject
+/buildnumber.counter
+/imagenumber.counter
+/build.tsk
+/storeForLocal_manifest.txt
+/storeForRemote_manifest.txt
