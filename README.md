@@ -29,10 +29,19 @@ For each model serialiser using nested field use the ExtendedHyperlinkedSerialis
 class SaleSerialiser(ExtendedHyperlinkedSerialiser):
 ```
 
-For each nested representation use the ExtendedModelSerialiserField
+For each nested representation in the parent object use the ExtendedModelSerialiserField
 
 ```python
     sale_items = ExtendedModelSerialiserField(SaleItemSerialiser(), many=True, required=False, allow_null=True)
+```
+
+We won't know the parents relationship on create so in each sub objects serialiser, the parent object must be made optional.
+```python
+    sale = serializers.HyperlinkedRelatedField(
+        required=False,
+        view_name='sale-detail',
+        queryset=Sale.objects.all()
+    )
 ```
 
 ## Playing With the sample project:
