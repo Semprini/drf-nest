@@ -56,8 +56,9 @@ def notify_save_instance(sender, instance, raw, created, serializer, exchange_pr
     json = JSONRenderer().render(serializer(instance, context=serializer_context()).data).decode(encoding='utf-8')
 
     if settings.MQ_FRAMEWORK['HOST'] == 'None':
-        print("EXCHANGE=%s | HEADERS=%s"%(exchange_name, headers_dict))
-        print('%s'%json)
+        pass
+        #print("EXCHANGE=%s | HEADERS=%s"%(exchange_name, headers_dict))
+        #print('%s'%json)
     else:
         credentials = pika.PlainCredentials(settings.MQ_FRAMEWORK['USER'], settings.MQ_FRAMEWORK['PASSWORD'])
         connection = pika.BlockingConnection(pika.ConnectionParameters(host=settings.MQ_FRAMEWORK['HOST'],credentials=credentials))

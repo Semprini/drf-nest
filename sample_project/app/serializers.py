@@ -18,6 +18,12 @@ class TenderTypeSerialiser(ExtendedHyperlinkedSerialiser):
 
 
 class TenderSerialiser(ExtendedHyperlinkedSerialiser):
+    sale = serializers.HyperlinkedRelatedField(
+        required=False,
+        view_name='sale-detail',
+        queryset=Sale.objects.all()
+    )
+    
     class Meta:
         model = Tender
         fields = ('type', 'url', 'sale', 'tender_type', 'amount', 'reference', )
@@ -30,6 +36,12 @@ class SalesChannelSerialiser(ExtendedHyperlinkedSerialiser):
         
         
 class SaleItemSerialiser(ExtendedHyperlinkedSerialiser):
+    sale = serializers.HyperlinkedRelatedField(
+        required=False,
+        view_name='sale-detail',
+        queryset=Sale.objects.all()
+    )
+
     class Meta:
         model = SaleItem
         fields = (  'type', 'url', 'sale', 'product_offering_id', 'supplier_product_id', 'product_name',
