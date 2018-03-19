@@ -12,6 +12,42 @@ from rest_framework.relations import PKOnlyObject
 from drf_nest.serializer_fields import TypeField, ExtendedModelSerialiserField, PrivateSerialiserField
 
 
+class PrivacyMixin():
+    def to_representation(self, instance):
+        ret = super(PrivacyMixin, self).to_representation(instance)
+
+        # If user is superuser or serialisation was called internally return the full representation
+        if self.context['request'].user.is_superuser or type(self.context['request'].user) == AnonymousUser:
+            return ret
+        user = User.objects.get(id=self.context['request'].user.id) #NOTE: This is not the same as user = self.context['request'].user as user.saleuserprofile.customer_ids produces different results
+            
+        # Get profile attributes
+        groups = user.groups.all()
+        customer_ids = user.saleuserprofile.customer_ids
+        for group in groups:
+            customer_ids = list(set(customer_ids + group.salegroupprofile.customer_ids))
+        store_ids = []
+        for group in groups:
+            store_ids = list(set(store_ids + group.salegroupprofile.store_ids))
+
+        # Check the private fields to see if user is allowed from either user profile or group profiles
+        for field in self._fields.keys():
+            if type(self._fields[field]) == PrivateSerialiserField:
+                if self._fields[field].serializer_field_parent is None:
+                    if getattr(instance, 'customer_id', '~~') in customer_ids or getattr(instance, 'store_id', '~~') in store_ids:
+                        view_private = True
+                    else:
+                        ret.pop(field)
+                else:
+                    parent = getattr(instance, self._fields[field].serializer_field_parent)
+                    if getattr(parent, 'customer_id', '~~') in customer_ids or getattr(parent, 'store_id', '~~') in store_ids:
+                        view_private = True
+                    else:
+                        ret.pop(field)
+
+        return ret
+        
+        
 class LimitDepthMixin():
     """
     Mixin which overloads to_representation of serialiser to enforce a max depth when serialising nested relations.
