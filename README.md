@@ -1,6 +1,42 @@
 # drf-nest
 Writable nested serialisers for Django Rest Framework
 
+## To run sample project
+
+```shell
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py createsuperuser super super@super.com super
+python manage.py runserver
+```
+
+## To use
+
+```shell
+python setup.py install
+```
+
+In your serialisers.py file import extensions:
+
+```python
+from drf_nest.serializers import ExtendedHyperlinkedSerialiser
+from drf_nest.serializer_fields import ExtendedModelSerialiserField
+```
+
+For each model serialiser using nested field use the ExtendedHyperlinkedSerialiser
+
+```python
+class SaleSerialiser(ExtendedHyperlinkedSerialiser):
+```
+
+For each nested representation use the ExtendedModelSerialiserField
+
+```python
+    sale_items = ExtendedModelSerialiserField(SaleItemSerialiser(), many=True, required=False, allow_null=True)
+```
+
+## Playing With the sample project:
+
 Create some required base objects for the sample project:
 ```json
 {
