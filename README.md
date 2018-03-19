@@ -32,7 +32,11 @@ class SaleSerialiser(ExtendedHyperlinkedSerialiser):
 For each nested representation in the parent object use the ExtendedModelSerialiserField
 
 ```python
-    sale_items = ExtendedModelSerialiserField(SaleItemSerialiser(), many=True, required=False, allow_null=True)
+    sale_items = ExtendedModelSerialiserField(
+        SaleItemSerialiser(), 
+        many=True, 
+        required=False, 
+        allow_null=True)
 ```
 
 We won't know the parents relationship on create so in each sub objects serialiser, the parent object must be made optional.
