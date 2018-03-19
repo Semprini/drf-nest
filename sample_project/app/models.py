@@ -35,10 +35,6 @@ class Sale(models.Model):
     identification_id = models.CharField(max_length=50,null=True, blank=True)
 
     customer_id = models.CharField(max_length=50,null=True, blank=True)
-    account_id = models.CharField(max_length=50,null=True, blank=True)
-    job_id = models.CharField(max_length=50,null=True, blank=True)
-
-    promotion_id = models.CharField(max_length=50,null=True, blank=True)
     pos_id = models.CharField(max_length=50,null=True, blank=True)
     staff_id = models.CharField(max_length=50,null=True, blank=True)
 
@@ -64,11 +60,6 @@ class SaleItem(models.Model):
     supplier_product_id = models.CharField(max_length=50,null=True, blank=True)
     product_name = models.CharField(max_length=150,null=True, blank=True)
     
-    promotion_id = models.CharField(max_length=50,null=True, blank=True)
-    price_channel_id = models.CharField(max_length=50,null=True, blank=True)
-    price_calculation_id = models.CharField(max_length=50,null=True, blank=True)
-    product_offering_price_id = models.CharField(max_length=50,null=True, blank=True)
-
     status = models.CharField(max_length=200, choices=(('sold', 'sold'), ('returned', 'returned'),), default='sold')
     status_related_sale = models.ForeignKey(Sale, null=True, blank=True, on_delete=models.CASCADE, db_index=True, related_name='related_sale_items')
     
@@ -81,7 +72,6 @@ class SaleItem(models.Model):
     tax = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     retail_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    cost_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     class Meta:
         ordering = ['id']

@@ -11,7 +11,7 @@ class SaleViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.DjangoModelPermissions, )
    
     filter_backends = (DjangoFilterBackend,)
-    filter_fields = ('channel','store_code','account_id','customer_id','job_id','identification_id','pos_id','staff_id')
+    filter_fields = ('channel','store_code','customer_id','identification_id','pos_id','staff_id')
 
             
 class SalesChannelViewSet(viewsets.ModelViewSet):
