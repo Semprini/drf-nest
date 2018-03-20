@@ -7,7 +7,8 @@ from django.contrib.auth.models import User, Group, AnonymousUser
 
 from rest_framework import serializers
 from rest_framework.fields import SkipField
-from rest_framework.relations import PKOnlyObject
+from rest_framework.relations import PKOnlyObject, ManyRelatedField
+
 
 from drf_nest.serializer_fields import TypeField, ExtendedModelSerialiserField, PrivateSerialiserField
 
@@ -93,6 +94,13 @@ class ExtendedHyperlinkedSerialiser(serializers.HyperlinkedModelSerializer):
     """
     type = TypeField()
 
+    def to_representation(self, instance):
+        # TODO: Why is this returning an ordered dict?
+        #if "{}".format(type(instance)) == "<class 'sample_project.app.models.SalesChannel'>":
+        #    print("foo", super(ExtendedHyperlinkedSerialiser, self).to_representation(instance))
+        ret = super(ExtendedHyperlinkedSerialiser, self).to_representation(instance)
+        return ret
+    
     def create(self, validated_data):
         # Remove nested fields from validated data and add to separate dict
         fields = []
@@ -110,6 +118,8 @@ class ExtendedHyperlinkedSerialiser(serializers.HyperlinkedModelSerializer):
                         objects.update(**validated_data[field])
                         validated_data[field] = objects[0]
                         fields.append(field)
+            elif type(self._fields[field]) == ManyRelatedField:
+                related.append(field)
             else:
                 fields.append(field)
 
@@ -123,9 +133,15 @@ class ExtendedHyperlinkedSerialiser(serializers.HyperlinkedModelSerializer):
         for field in related:
             for obj_dict in validated_data[field]:
                 attr = getattr(instance, field)
-                object = self._fields[field].serializer.Meta.model(**obj_dict)
-                setattr(object, attr.field.name, instance)
-                object.save()
+
+                if type(obj_dict) != dict:
+                    # If we have an object then add it
+                    object = obj_dict
+                else:
+                    # If we have a dictionary then create (TODO: or update)
+                    object = self._fields[field].serializer.Meta.model(**obj_dict)
+                    setattr(object, attr.field.name, instance)
+                    object.save()
 
                 attr.add(object)
 
@@ -141,6 +157,8 @@ class ExtendedHyperlinkedSerialiser(serializers.HyperlinkedModelSerializer):
             if type(self._fields[field]) == ExtendedModelSerialiserField:
                 if validated_data[field] is not None:
                     related.append(field)
+            elif type(self._fields[field]) == ManyRelatedField:
+                related.append(field)
             # Exclude read only fields
             elif not self._fields[field].read_only:
                 fields.append(field)
@@ -154,21 +172,24 @@ class ExtendedHyperlinkedSerialiser(serializers.HyperlinkedModelSerializer):
             # Handle Foreign keys by creating list of 1 (many=False will result in dict not list of dicts)
             if type(validated_data[field]) != list:
                 validated_data[field] = [validated_data[field],]
-            # For each sub object of the instance field there is a dict containing attributes and values
+            # For each sub object of the instance field there is a dict containing attributes and values or the instance
             for obj_dict in validated_data[field]:
                 attr = getattr(instance, field)
-                # Input may specify an existing or new sub object. If existing, there must be a url fields for us to look it up
-                if "url" in obj_dict.keys():
-                    # Get object from url and update from deserialised dict
-                    resolved_func, unused_args, resolved_kwargs = resolve(urlparse(obj_dict["url"]).path)
-                    objects = resolved_func.cls.queryset.filter(pk=resolved_kwargs['pk'])
-                    del obj_dict["url"]
-                    objects.update(**obj_dict)
-                    object = objects[0]
+                if type(obj_dict) != dict:
+                    object = obj_dict
                 else:
-                    # Create object from deserialised dict
-                    object = self._fields[field].serializer.Meta.model(**obj_dict)
-                    # Note: Do not save new object until we have set the attribute to the parent depending on relationship type
+                    # Input may specify an existing or new sub object. If existing, there must be a url fields for us to look it up
+                    if "url" in obj_dict.keys():
+                        # Get object from url and update from deserialised dict
+                        resolved_func, unused_args, resolved_kwargs = resolve(urlparse(obj_dict["url"]).path)
+                        objects = resolved_func.cls.queryset.filter(pk=resolved_kwargs['pk'])
+                        del obj_dict["url"]
+                        objects.update(**obj_dict)
+                        object = objects[0]
+                    else:
+                        # Create object from deserialised dict
+                        object = self._fields[field].serializer.Meta.model(**obj_dict)
+                        # Note: Do not save new object until we have set the attribute to the parent depending on relationship type
 
                 # Handle all types of relationships
                 if attr.__class__.__name__ == "ManyRelatedManager":

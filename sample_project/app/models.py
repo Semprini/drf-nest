@@ -24,9 +24,10 @@ class Sale(models.Model):
     id = models.CharField(max_length=50, primary_key=True)
     sale_type = models.CharField(max_length=50, choices=(('retail', 'retail'), ('cash account', 'cash account'), ('credit account', 'credit account')), default='retail')
 
-    channel = models.ForeignKey(SalesChannel, on_delete=models.CASCADE)
     store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='store_sales')
 
+    channel = models.ManyToManyField(SalesChannel)
+    
     datetime = models.DateTimeField(default=now)
     status = models.CharField(max_length=50, choices=(('basket', 'basket'), ('complete', 'complete')), default='complete')
     docket_number = models.IntegerField()

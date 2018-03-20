@@ -1,16 +1,18 @@
 # drf-nest
 Writable nested serialisers for Django Rest Framework
 
-## To run sample project
+## The sample
+A sample project is included which implements a retail type use case. 
+ - Sales have a foreign key to a store 
+ - Sale items have foreign keys to the sale.
 
+### To run sample:
 ```shell
 pip install -r requirements.txt
 python manage.py migrate
 python manage.py createsuperuser super super@super.com super
 python manage.py runserver
 ```
-## The sample
-A sample project is included which implements a retail type use case. Sales have a foreign key to a store and the sale items have foreign keys to the sale.
 
 ## To use
 

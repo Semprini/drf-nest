@@ -42,10 +42,10 @@ class ExtendedModelSerialiserField(serializers.Field):
 
     def to_representation(self, instance):
         # Serialise using supplied serializer
-        self.serializer.expansion_depth = getattr(self, "expansion_depth", 0)
         if instance.__class__.__name__ in ("RelatedManager", "ManyRelatedManager"):
             ret = []
             for item in instance.all():
+                #print(instance, item, self.serializer)
                 ret.append(self.serializer.to_representation(item))
             return ret
         return self.serializer.to_representation(instance)
@@ -61,7 +61,9 @@ class ExtendedModelSerialiserField(serializers.Field):
         elif type(data) == list:
             ret = []
             for object_dict in data:
-                if "type" in object_dict.keys():
+                if type(object_dict) == str:
+                    object_dict = {'url':object_dict}
+                elif "type" in object_dict.keys():
                     del object_dict["type"]
                 ret.append( object_dict )
             return ret

@@ -56,9 +56,10 @@ class SaleItemSerialiser(ExtendedHyperlinkedSerialiser):
 
 
 class SaleSerialiser(ExtendedHyperlinkedSerialiser):
-    store = ExtendedModelSerialiserField(StoreSerialiser(),required=False,)
-    sale_items = ExtendedModelSerialiserField(SaleItemSerialiser(),many=True)
-    tenders = ExtendedModelSerialiserField(TenderSerialiser(),many=True)
+    store = ExtendedModelSerialiserField(StoreSerialiser(), required=False,)
+    sale_items = ExtendedModelSerialiserField(SaleItemSerialiser(), many=True)
+    tenders = ExtendedModelSerialiserField(TenderSerialiser(), many=True)
+    channel = ExtendedModelSerialiserField(SalesChannelSerialiser(), many=True)
     
     class Meta:
         model = Sale
