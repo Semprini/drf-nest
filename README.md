@@ -9,6 +9,8 @@ python manage.py migrate
 python manage.py createsuperuser super super@super.com super
 python manage.py runserver
 ```
+## The sample
+A sample project is included which implements a retail type use case. Sales have a foreign key to a store and the sale items have foreign keys to the sale.
 
 ## To use
 
@@ -40,7 +42,7 @@ class SaleSerialiser(ExtendedHyperlinkedSerialiser):
         allow_null=True)
 ```
 
-We won't know the parents relationship on create so in each sub objects serialiser, the parent object must be made optional.
+We won't know the foreign key to fulfill the relationship if we are creating the parent so in each sub objects serialiser, the parent object must be made optional.
 ```python
 class SaleItemSerialiser(ExtendedHyperlinkedSerialiser):
     sale = serializers.HyperlinkedRelatedField(
@@ -50,66 +52,17 @@ class SaleItemSerialiser(ExtendedHyperlinkedSerialiser):
     )
 ```
 
-## Playing With the sample project:
+## How does it work
+The serialiser field overrides the to internal function to return a dictionary (or list of dictionaries) rather than the django model instance.
+This is done because the fields do not know if the parent exists already but may have a required foreign key constraint.
 
-Create some required base objects for the sample project:
-```json
-{
-    "type": "SalesChannel",
-    "url": "http://127.0.0.1:8000/api/sales_channel/test_channel/",
-    "name": "test_channel"
-}
-```
-```json
-{
-    "type": "TenderType",
-    "url": "http://127.0.0.1:8000/api/tender_type/Cash/",
-    "name": "Cash",
-    "description": ""
-}
-```
+## Features
 
-Sample create payload to POST a new sale:
-```json
-{
-    "type": "Sale",
-    "channel": "http://127.0.0.1:8000/api/sales_channel/test_channel/",
-    "store_code": "S1",
-    "datetime": "2018-03-19T04:02:23Z",
-    "docket_number": 1,
-    "status": "complete",
-    "amount": "1.15",
-    "amount_excl": "1.00",
-    "discount": "0.00",
-    "tax": "0.15",
-    "customer_id": null,
-    "identification_id": null,
-    "pos_id": null,
-    "staff_id": null,
-    "tenders": [
-        {
-            "type": "Tender",
-            "tender_type": "http://127.0.0.1:8000/api/tender_type/Cash/",
-            "amount": "1.15",
-            "reference": null
-        }
-    ],
-    "sale_items": [
-        {
-            "type": "SaleItem",
-            "product_offering_id": "1",
-            "supplier_product_id": "1",
-            "product_name": "Test Product",
-            "status": "sold",
-            "status_related_sale": null,
-            "quantity": "1.0000",
-            "unit_of_measure": "each",
-            "amount": "1.15",
-            "amount_excl": "0.15",
-            "discount": "0.00",
-            "tax": "0.15",
-            "retail_price": "0.00"
-        }
-    ]
-}
-```
+See the sample project tests for example POST requests.
+
+ - During POST, PUT and PATCH user can specify nested object either by URL or full serialised representation
+ - Adds type field to allow for generic foreign keys (in development)
+ - Serialisation of model with foreign key
+ - Serialisation of model with reverse relationship
+ - Serialisation of model with many to many relationship
+ 

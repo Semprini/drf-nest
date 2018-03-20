@@ -26,6 +26,10 @@ class PrivateSerialiserField(serializers.Field):
 class ExtendedModelSerialiserField(serializers.Field):
     """
     A custom field which allows URLs to be provided when deserialising hyper-linked fields.
+    
+    The to internal value override always returns a dictionary. It's up to the serialiser to create the models.
+    this is due to the fact that the field may not have a parent object to attribute it's foreign key to yet.
+    
     """
 
     def __init__(self, serializer, many=False, *args, **kwargs):
@@ -47,27 +51,26 @@ class ExtendedModelSerialiserField(serializers.Field):
         return self.serializer.to_representation(instance)
 
     def to_internal_value(self, data):
-        # Allow string, list or full object to be provided
+        # Allow string, list or dictionary to be provided
 
-        # If string then it must contain the URL, reverse and get referenced object
+        # If string then it must contain the URL
         if type(data) == str:
-            #resolved_func, unused_args, resolved_kwargs = resolve(urlparse(data).path)
-            #return resolved_func.cls.queryset.get(pk=resolved_kwargs['pk'])
             return {'url':data}
 
-        # If list then loop through results and call to_internal_value on each
+        # If list then loop through results 
         elif type(data) == list:
             ret = []
             for object_dict in data:
-                ret.append( self.to_internal_value( object_dict ) )
+                if "type" in object_dict.keys():
+                    del object_dict["type"]
+                ret.append( object_dict )
             return ret
         
-        # Otherwise use default serializer function
+        # Otherwise use provided data
         else:
-            obj_dict = self.serializer.to_internal_value(data)
-            # Add url back to dict to allow update of object
-            if "url" in data.keys():
-                obj_dict["url"] = data["url"]
+            obj_dict = data
+            if "type" in obj_dict.keys():
+                del obj_dict["type"]
             return obj_dict
         
     

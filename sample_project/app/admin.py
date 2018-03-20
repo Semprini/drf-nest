@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from sample_project.app.models import Sale, SaleItem, TenderType, Tender, SalesChannel
+from sample_project.app.models import Sale, SaleItem, TenderType, Tender, SalesChannel, Store
 
 class TenderInline(admin.TabularInline):
     model = Tender
@@ -12,8 +12,8 @@ class SaleItemInline(admin.TabularInline):
     extra = 0
 
 class SaleAdmin(admin.ModelAdmin):
-    list_display = ('store_code', 'sale_type', 'datetime','staff_id','docket_number','amount','discount')
-    list_filter = ('datetime', 'sale_type', 'store_code')
+    list_display = ('store', 'sale_type', 'datetime','staff_id','docket_number','amount','discount')
+    list_filter = ('datetime', 'sale_type', 'store')
     inlines = [ TenderInline, SaleItemInline]
     readonly_fields=('id',)
 
@@ -23,3 +23,4 @@ admin.site.register(SaleItem)
 admin.site.register(TenderType)
 admin.site.register(Tender)
 admin.site.register(SalesChannel)
+admin.site.register(Store)

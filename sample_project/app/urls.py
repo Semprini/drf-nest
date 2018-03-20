@@ -26,6 +26,7 @@ router.register(r'sale_item', SaleViews.SaleItemViewSet)
 router.register(r'tender_type', SaleViews.TenderTypeViewSet)
 router.register(r'tender', SaleViews.TenderViewSet)
 router.register(r'sales_channel', SaleViews.SalesChannelViewSet)
+router.register(r'store', SaleViews.StoreViewSet)
 
 urlpatterns = [
     path('api/', include(router.urls)),

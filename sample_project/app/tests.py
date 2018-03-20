@@ -4,7 +4,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APITestCase, APIRequestFactory, force_authenticate, APIClient
 
-from sample_project.app.models import SalesChannel, Sale, TenderType
+from sample_project.app.models import SalesChannel, Sale, TenderType, Store
 
 class SaleAPITests(APITestCase):
 
@@ -14,9 +14,10 @@ class SaleAPITests(APITestCase):
         self.client.login(username='superjohn', password='jsuperjohnpassword')
         self.client.force_authenticate(user=self.superuser)
         
-        self.channel = SalesChannel.objects.create(name='Store')
+        self.channel = SalesChannel.objects.create(name='InStore')
+        self.store = Store.objects.create(code="FOO1", name='Foo Store')
         self.tender_type = TenderType.objects.create(name='Cash')
-        self.sale = Sale.objects.create( channel=self.channel, store_code="X1", docket_number=1, customer_id="A" )
+        self.sale = Sale.objects.create( channel=self.channel, store=self.store, docket_number=1, customer_id="A" )
         
         
     def test_get_sale(self):
@@ -30,19 +31,35 @@ class SaleAPITests(APITestCase):
         
     def test_create_sale(self):
         """
-        Ensure we can create a new empty Sale object.
+        Ensure we can create a new empty Sale object using URL representation of the store.
         """
         url = '/api/sale/'
         data = {
-            "channel":"http://127.0.0.1:8000/api/sales_channel/Store/",
-            "store_code":"X1",
+            "channel":"http://127.0.0.1:8000/api/sales_channel/InStore/",
+            "store":"http://127.0.0.1:8000/api/store/FOO1/",
             "docket_number":2,
             "datetime":"2018-02-04T00:40:44.313123Z",
             "total_amount":"0.00",
-            "total_amount_excl":"0.00",
-            "total_discount":"0.00",
-            "total_tax":"0.00",
-            "customer_id":"A",
+            "tenders":[],
+            "sale_items":[]}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+
+    def test_create_full_store(self):
+        """
+        Ensure we can create a new empty Sale object but using the full representation of the store.
+        """
+        url = '/api/sale/'
+        data = {
+            "channel":"http://127.0.0.1:8000/api/sales_channel/InStore/",
+            "store":{
+                "url":"http://127.0.0.1:8000/api/store/FOO1/",
+                "name": "foo changed"
+            },
+            "docket_number":3,
+            "datetime":"2018-02-04T00:40:44.313123Z",
+            "total_amount":"0.00",
             "tenders":[],
             "sale_items":[]}
         response = self.client.post(url, data, format='json')
@@ -53,9 +70,9 @@ class SaleAPITests(APITestCase):
         url = '/api/sale/'
         data = {
             "type": "Sale",
-            "channel": "http://127.0.0.1:8000/api/sales_channel/Store/",
+            "channel": "http://127.0.0.1:8000/api/sales_channel/InStore/",
             "datetime": "2018-03-19T04:02:23Z",
-            "store_code":"X1",
+            "store":"http://127.0.0.1:8000/api/store/FOO1/",
             "docket_number": 1,
             "status": "complete",
             "amount": "1.15",

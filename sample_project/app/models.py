@@ -4,7 +4,11 @@ from django.contrib.auth.models import User, Group
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-# Create your models here.
+
+class Store(models.Model):
+    code = models.CharField(primary_key=True, max_length=50)
+    name =  models.CharField( max_length=100 )
+
     
 class SalesChannel(models.Model):
     name =  models.CharField( primary_key=True, max_length=100 )
@@ -21,7 +25,7 @@ class Sale(models.Model):
     sale_type = models.CharField(max_length=50, choices=(('retail', 'retail'), ('cash account', 'cash account'), ('credit account', 'credit account')), default='retail')
 
     channel = models.ForeignKey(SalesChannel, on_delete=models.CASCADE)
-    store_code = models.CharField(max_length=50)
+    store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='store_sales')
 
     datetime = models.DateTimeField(default=now)
     status = models.CharField(max_length=50, choices=(('basket', 'basket'), ('complete', 'complete')), default='complete')
@@ -42,11 +46,11 @@ class Sale(models.Model):
         ordering = ['-datetime']
         
     def __str__(self):
-        return "%s|%s|%d"%(self.store_code,self.datetime,self.docket_number)
+        return "%s|%s|%d"%(self.store.code, self.datetime, self.docket_number)
         
     def save(self, raw=False, *args, **kwargs):
         if self.id == "":
-            self.id = '{}-{:04d}{:02d}{:02d}{}'.format(self.store_code, self.datetime.year, self.datetime.month, self.datetime.day, self.docket_number)
+            self.id = '{}-{:04d}{:02d}{:02d}{}'.format(self.store.code, self.datetime.year, self.datetime.month, self.datetime.day, self.docket_number)
         if raw:
             self.save_base(raw=True)
         else:

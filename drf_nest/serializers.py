@@ -99,10 +99,20 @@ class ExtendedHyperlinkedSerialiser(serializers.HyperlinkedModelSerializer):
         related = []
         for field in validated_data.keys():
             if type(self._fields[field]) == ExtendedModelSerialiserField:
-                related.append(field)
+                # Check if we have a URL so we can assign as part of creation
+                if type(validated_data[field]) == dict:
+                    if "url" not in validated_data[field]:
+                        related.append(field)
+                    else:
+                        resolved_func, unused_args, resolved_kwargs = resolve(urlparse(validated_data[field]["url"]).path)
+                        objects = resolved_func.cls.queryset.filter(pk=resolved_kwargs['pk'])
+                        del validated_data[field]["url"]
+                        objects.update(**validated_data[field])
+                        validated_data[field] = objects[0]
+                        fields.append(field)
             else:
                 fields.append(field)
-                
+
         # Create instance of serialiser Meta.model must get pk to attach related objects
         instance = self.Meta.model()
         for field in fields:
@@ -124,7 +134,6 @@ class ExtendedHyperlinkedSerialiser(serializers.HyperlinkedModelSerializer):
 
         
     def update(self, instance, validated_data):
-
         # Create a list of fields to update and a list of related objects
         fields = []
         related = []
@@ -152,8 +161,8 @@ class ExtendedHyperlinkedSerialiser(serializers.HyperlinkedModelSerializer):
                 if "url" in obj_dict.keys():
                     # Get object from url and update from deserialised dict
                     resolved_func, unused_args, resolved_kwargs = resolve(urlparse(obj_dict["url"]).path)
-                    del obj_dict["url"]
                     objects = resolved_func.cls.queryset.filter(pk=resolved_kwargs['pk'])
+                    del obj_dict["url"]
                     objects.update(**obj_dict)
                     object = objects[0]
                 else:

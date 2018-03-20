@@ -8,9 +8,15 @@ from rest_framework import serializers
 from drf_nest.serializers import ExtendedHyperlinkedSerialiser
 from drf_nest.serializer_fields import ExtendedModelSerialiserField
 
-from sample_project.app.models import SalesChannel, Sale, SaleItem, TenderType, Tender
+from sample_project.app.models import SalesChannel, Sale, SaleItem, TenderType, Tender, Store
 
 
+class StoreSerialiser(ExtendedHyperlinkedSerialiser):
+    class Meta:
+        model = Store
+        fields = ('type', 'url', 'code', 'name', )
+
+        
 class TenderTypeSerialiser(ExtendedHyperlinkedSerialiser):
     class Meta:
         model = TenderType
@@ -50,13 +56,13 @@ class SaleItemSerialiser(ExtendedHyperlinkedSerialiser):
 
 
 class SaleSerialiser(ExtendedHyperlinkedSerialiser):
+    store = ExtendedModelSerialiserField(StoreSerialiser(),required=False,)
     sale_items = ExtendedModelSerialiserField(SaleItemSerialiser(),many=True)
     tenders = ExtendedModelSerialiserField(TenderSerialiser(),many=True)
-    #status_related_sale = ExtendedModelSerialiserField('SaleSerialiser', required=False, allow_null=True)
     
     class Meta:
         model = Sale
-        fields = ('type', 'url', 'channel', 'store_code', 'datetime', 'docket_number', 'status',
+        fields = ('type', 'url', 'channel', 'store', 'datetime', 'docket_number', 'status',
                   'amount', 'amount_excl', 'discount', 'tax',
                   'customer_id', 'identification_id', 'pos_id', 'staff_id', 
                   'tenders', 'sale_items',)
