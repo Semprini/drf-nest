@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class PrivateSerialiserField(serializers.Field):
     def __init__(self, serializer_field, privacy_parent, *args, **kwargs):
-        super(PrivateSerializerField, self).__init__(*args, **kwargs)
+        super(PrivateSerialiserField, self).__init__(*args, **kwargs)
         self.serializer_field_parent = privacy_parent
         self.serializer_field = serializer_field
         self.serializer_field.bind('', self)
