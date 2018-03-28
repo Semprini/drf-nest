@@ -4,8 +4,6 @@ from django.http import HttpRequest
 from rest_framework.request import Request
 from rest_framework.renderers import JSONRenderer
 
-import pika
-
 from django.conf import settings
 
 
@@ -60,6 +58,8 @@ def notify_save_instance(sender, instance, raw, created, serializer, exchange_pr
         #print("EXCHANGE=%s | HEADERS=%s"%(exchange_name, headers_dict))
         #print('%s'%json)
     else:
+        import pika
+
         credentials = pika.PlainCredentials(settings.MQ_FRAMEWORK['USER'], settings.MQ_FRAMEWORK['PASSWORD'])
         connection = pika.BlockingConnection(pika.ConnectionParameters(host=settings.MQ_FRAMEWORK['HOST'],credentials=credentials))
         channel = connection.channel()
