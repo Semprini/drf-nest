@@ -7,7 +7,7 @@ from django.contrib.auth.models import User, Group, AnonymousUser
 
 from rest_framework import serializers
 from rest_framework.fields import SkipField
-from rest_framework.relations import PKOnlyObject, ManyRelatedField
+from rest_framework.relations import PKOnlyObject, ManyRelatedField, HyperlinkedRelatedField
 
 
 from drf_nest.serializer_fields import TypeField, ExtendedModelSerialiserField, PrivateSerialiserField
@@ -154,10 +154,11 @@ class ExtendedHyperlinkedSerialiser(serializers.HyperlinkedModelSerializer):
         fields = []
         related = []
         for field in validated_data.keys():
+            #print(field,type(self._fields[field]))
             if type(self._fields[field]) == ExtendedModelSerialiserField:
                 if validated_data[field] is not None:
                     related.append(field)
-            elif type(self._fields[field]) == ManyRelatedField:
+            elif type(self._fields[field]) in (ManyRelatedField, HyperlinkedRelatedField):
                 related.append(field)
             # Exclude read only fields
             elif not self._fields[field].read_only:
@@ -169,43 +170,57 @@ class ExtendedHyperlinkedSerialiser(serializers.HyperlinkedModelSerializer):
 
         # Loop through sub objects, deserialise and add to parent
         for field in related:
-            # Handle Foreign keys by creating list of 1 (many=False will result in dict not list of dicts)
-            if type(validated_data[field]) != list:
-                validated_data[field] = [validated_data[field],]
-            # For each sub object of the instance field there is a dict containing attributes and values or the instance
-            for obj_dict in validated_data[field]:
-                attr = getattr(instance, field)
-                if type(obj_dict) != dict:
-                    object = obj_dict
-                else:
-                    # Input may specify an existing or new sub object. If existing, there must be a url fields for us to look it up
-                    if "url" in obj_dict.keys():
-                        # Get object from url and update from deserialised dict
-                        resolved_func, unused_args, resolved_kwargs = resolve(urlparse(obj_dict["url"]).path)
-                        objects = resolved_func.cls.queryset.filter(pk=resolved_kwargs['pk'])
-                        del obj_dict["url"]
-                        objects.update(**obj_dict)
-                        object = objects[0]
+            need_save = True
+            if validated_data[field] != None:
+                # Handle Foreign keys by creating list of 1 (many=False will result in dict not list of dicts)
+                if type(validated_data[field]) != list:
+                    validated_data[field] = [validated_data[field],]
+                # For each sub object of the instance field there is a dict containing attributes and values or the instance
+                for obj_dict in validated_data[field]:
+                    attr = getattr(instance, field)
+                    if type(obj_dict) != dict:
+                        need_save = False
+                        if type(obj_dict) == str:
+                            resolved_func, unused_args, resolved_kwargs = resolve(urlparse(obj_dict).path)
+                            object = resolved_func.cls.queryset.get(pk=resolved_kwargs['pk'])                    
+                        else:
+                            object = obj_dict
                     else:
-                        # Create object from deserialised dict
-                        object = self._fields[field].serializer.Meta.model(**obj_dict)
-                        # Note: Do not save new object until we have set the attribute to the parent depending on relationship type
+                        # Input may specify an existing or new sub object. If existing, there must be a url field for us to look it up
+                        if "url" in obj_dict.keys():
+                            # Get object from url and update from deserialised dict
+                            resolved_func, unused_args, resolved_kwargs = resolve(urlparse(obj_dict["url"]).path)
+                            objects = resolved_func.cls.queryset.filter(pk=resolved_kwargs['pk'])
+                            serializer = self._fields[field].serializer
+                            serializer.fields
+                            val = serializer.validate(obj_dict)
+                            serializer.update(objects[0],val)
+                            #del obj_dict["url"]
+                            #print("objects:",objects)
+                            #print(obj_dict)
+                            #objects.update(**obj_dict)
+                            object = objects[0]
+                        else:
+                            # Create object from deserialised dict
+                            object = self._fields[field].serializer.Meta.model(**obj_dict)
+                            # Note: Do not save new object until we have set the attribute to the parent depending on relationship type
 
-                # Handle all types of relationships
-                if attr.__class__.__name__ == "ManyRelatedManager":
-                    # ManyToMany
-                    object.save()
-                    getattr(instance,field).add(object)
-                elif attr.__class__.__name__ == "RelatedManager":
-                    # Reverse relationship to foreign keys
-                    setattr(object, attr.field.name, instance)
-                    object.save()
-                    attr.add(object) #TODO: Check if this works for both lists and singles
-                else:
-                    # Foreign keys
-                    object.save()
-                    setattr(instance, field, object)
-                #TODO: Removal of missing related objects if partial
+                    if need_save:
+                        # Handle all types of relationships
+                        if attr.__class__.__name__ == "ManyRelatedManager":
+                            # ManyToMany
+                            object.save()
+                            getattr(instance,field).add(object)
+                        elif attr.__class__.__name__ == "RelatedManager":
+                            # Reverse relationship to foreign keys
+                            setattr(object, attr.field.name, instance)
+                            object.save()
+                            attr.add(object) #TODO: Check if this works for both lists and singles
+                        else:
+                            # Foreign keys
+                            object.save()
+                            setattr(instance, field, object)
+                        #TODO: Removal of missing related objects if partial
                     
         instance.save()
         return instance

@@ -31,7 +31,7 @@ def notify_save_instance(sender, instance, raw, created, serializer, exchange_pr
     if raw:
         return
         
-    # To allow related objects to be sent in signal we can set a dictionary of things to save before the serializtion occurs
+    # To allow related objects to be sent in signal we can set a dictionary of things to save before the serialistion occurs
     if hasattr(instance,"pre_signal_xtra_related"):
         for key, value in instance.pre_signal_xtra_related.items():
             if type(value[0]) == list:
