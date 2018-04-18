@@ -93,6 +93,7 @@ class ExtendedHyperlinkedSerialiser(serializers.HyperlinkedModelSerializer):
         Derived from hyper-linked serialiser and the url field must be present on the serialiser
     """
     type = TypeField()
+    
 
     def to_representation(self, instance):
         # TODO: Why is this returning an ordered dict?
