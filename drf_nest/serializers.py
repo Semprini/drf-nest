@@ -179,6 +179,7 @@ class ExtendedHyperlinkedSerialiser(serializers.HyperlinkedModelSerializer):
                 for obj_dict in validated_data[field]:
                     attr = getattr(instance, field)
                     if type(obj_dict) != dict:
+                        # If no fields specified in payload (just URL) then no need to save sub object
                         need_save = False
                         if type(obj_dict) == str:
                             resolved_func, unused_args, resolved_kwargs = resolve(urlparse(obj_dict).path)
@@ -190,16 +191,16 @@ class ExtendedHyperlinkedSerialiser(serializers.HyperlinkedModelSerializer):
                         if "url" in obj_dict.keys():
                             # Get object from url and update from deserialised dict
                             resolved_func, unused_args, resolved_kwargs = resolve(urlparse(obj_dict["url"]).path)
-                            objects = resolved_func.cls.queryset.filter(pk=resolved_kwargs['pk'])
+                            object = resolved_func.cls.queryset.get(pk=resolved_kwargs['pk'])
                             serializer = self._fields[field].serializer
-                            serializer.fields
-                            val = serializer.validate(obj_dict)
-                            serializer.update(objects[0],val)
-                            #del obj_dict["url"]
-                            #print("objects:",objects)
-                            #print(obj_dict)
-                            #objects.update(**obj_dict)
-                            object = objects[0]
+                            
+                            # If only the url is in the data then no need to update the sub-object fields or save
+                            if len(obj_dict.keys()) > 1:
+                                serializer.fields
+                                val = serializer.validate(obj_dict)
+                                serializer.update(object,val)
+                            else:
+                                need_save = False
                         else:
                             # Create object from deserialised dict
                             object = self._fields[field].serializer.Meta.model(**obj_dict)
