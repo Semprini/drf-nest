@@ -49,10 +49,9 @@ class PerformantPage(Page):
         return None
 
 
-class PerformantPaginator(object):
+class PerformantPaginator(Paginator):
 
-    def __init__(self, queryset, per_page=25, ordering='pk', allow_count=False,
-                 allow_empty_first_page=True, orphans=0):
+    def __init__(self, queryset, per_page=25, orphans=0, allow_empty_first_page=True, ordering='pk', allow_count=False):
         '''As a general rule you should ensure there's an appropriate index for
         the field provided in ordering.
 
@@ -72,16 +71,19 @@ class PerformantPaginator(object):
         self._reverse_ordering = field if ordering[0] == '-' else \
             '-{0}'.format(ordering)
         self._field = field
+        
+        super().__init__(queryset, per_page, orphans, allow_empty_first_page)
 
     def __repr__(self):
         return '<PerformantPaginator (%d, %s %d)>' % (self.per_page,
                                                       self.ordering,
                                                       self.allow_count)
 
+    @property
     def count(self):
         '''Counting the number of items is expensive, so by default it's not
         supported and None will be returned.'''
-        return self.queryset.count() if self.allow_count else None
+        return self.queryset.count() if self.allow_count else sys.maxsize
 
     def default_page_number(self):
         return None
