@@ -1,6 +1,7 @@
 from django.contrib import admin
 from drf_nest.admin import SingleTextInputFilter
 
+from drf_nest.pagination import PerformantPaginator
 from sample_project.app.models import Sale, SaleItem, TenderType, Tender, SalesChannel, Store
 
 class TenderInline(admin.TabularInline):
@@ -17,6 +18,8 @@ class SaleAdmin(admin.ModelAdmin):
     list_filter = [('staff_id', SingleTextInputFilter), 'datetime', 'sale_type', 'store']
     inlines = [ TenderInline, SaleItemInline]
     readonly_fields=('id',)
+    paginator = PerformantPaginator
+    show_full_result_count = False
 
     
 admin.site.register(Sale, SaleAdmin)
