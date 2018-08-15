@@ -1,11 +1,16 @@
+import time
 from django.dispatch import receiver
 from django.http import HttpRequest
+from django.core.cache import cache
 
 from rest_framework.request import Request
 from rest_framework.renderers import JSONRenderer
 
 from django.conf import settings
 
+credentials = None
+connection = None
+channel = None
 
 def notify_extra_args(serializer, exchange_prefix, exchange_header_list, *args, **kwargs):
     def inner1(f, *args, **kwargs):
@@ -60,13 +65,30 @@ def notify_save_instance(sender, instance, raw, created, serializer, exchange_pr
     else:
         import pika
 
-        credentials = pika.PlainCredentials(settings.MQ_FRAMEWORK['USER'], settings.MQ_FRAMEWORK['PASSWORD'])
-        connection = pika.BlockingConnection(pika.ConnectionParameters(host=settings.MQ_FRAMEWORK['HOST'],credentials=credentials))
-        channel = connection.channel()
-        channel.exchange_declare(exchange=exchange_name, exchange_type='headers')
+        global credentials
+        global connection
+        global channel
 
-        channel.basic_publish(  exchange=exchange_name,
-                                routing_key='cbe',
-                                body=json,
-                                properties = pika.BasicProperties(headers=headers_dict))
-        connection.close()    
+        retry = 5
+        done = False
+        while not done:
+            if channel == None:
+                credentials = pika.PlainCredentials(settings.MQ_FRAMEWORK['USER'], settings.MQ_FRAMEWORK['PASSWORD'])
+                connection = pika.BlockingConnection(pika.ConnectionParameters(host=settings.MQ_FRAMEWORK['HOST'],credentials=credentials))
+                channel = connection.channel()
+                channel.exchange_declare(exchange=exchange_name, exchange_type='headers')
+
+            try:
+                channel.basic_publish(  exchange=exchange_name,
+                                    routing_key='cbe',
+                                    body=json,
+                                    properties = pika.BasicProperties(headers=headers_dict))
+                done = True
+            except pika.exceptions.ConnectionClosed:
+                time.sleep(1)
+                channel = None
+                retry -= 1
+                if retry == 0:
+                    done = True
+                    print( "ERROR! Sending payload to {}:{}".format(exchange_name, json) )
+                    
