@@ -18,5 +18,5 @@ packages = find_packages('drf_nest/')
 setup(name='drf_nest',
     version='0.1-alpha',
     packages=packages,
-    package_data={'':['README.md'], 'drf_nest': ['templates/*.html',]},
+    package_data={'':['README.md'], 'drf_nest': ['templates/admin/*.html',]},
 )

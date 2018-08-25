@@ -84,7 +84,7 @@ def notify_save_instance(sender, instance, raw, created, serializer, exchange_pr
                                     body=json,
                                     properties = pika.BasicProperties(headers=headers_dict))
                 done = True
-            except pika.exceptions.ConnectionClosed:
+            except (pika.exceptions.ConnectionClosed, pika.exceptions.ChannelClosed) as e:
                 time.sleep(1)
                 channel = None
                 retry -= 1
