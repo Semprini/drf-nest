@@ -32,15 +32,15 @@ class PrivacyMixin():
             store_ids = list(set(store_ids + group.salegroupprofile.store_ids))
 
         # Check the private fields to see if user is allowed from either user profile or group profiles
-        for field in self._declared_fields.keys():
-            if type(self._declared_fields[field]) == PrivateSerialiserField:
-                if self._declared_fields[field].serializer_field_parent is None:
+        for field in self.fields.keys():
+            if type(self.fields[field]) == PrivateSerialiserField:
+                if self.fields[field].serializer_field_parent is None:
                     if getattr(instance, 'customer_id', '~~') in customer_ids or getattr(instance, 'store_id', '~~') in store_ids:
                         view_private = True
                     else:
                         ret.pop(field)
                 else:
-                    parent = getattr(instance, self._declared_fields[field].serializer_field_parent)
+                    parent = getattr(instance, self.fields[field].serializer_field_parent)
                     if getattr(parent, 'customer_id', '~~') in customer_ids or getattr(parent, 'store_id', '~~') in store_ids:
                         view_private = True
                     else:
@@ -107,7 +107,7 @@ class ExtendedHyperlinkedSerialiser(serializers.HyperlinkedModelSerializer):
         fields = []
         related = []
         for field in validated_data.keys():
-            if type(self._declared_fields[field]) == ExtendedModelSerialiserField:
+            if type(self.fields[field]) == ExtendedModelSerialiserField:
                 # Check if we have a URL so we can assign as part of creation
                 if type(validated_data[field]) == dict:
                     if "url" not in validated_data[field]:
@@ -119,7 +119,7 @@ class ExtendedHyperlinkedSerialiser(serializers.HyperlinkedModelSerializer):
                         objects.update(**validated_data[field])
                         validated_data[field] = objects[0]
                         fields.append(field)
-            elif type(self._declared_fields[field]) == ManyRelatedField:
+            elif type(self.fields[field]) == ManyRelatedField:
                 related.append(field)
             else:
                 fields.append(field)
@@ -140,7 +140,7 @@ class ExtendedHyperlinkedSerialiser(serializers.HyperlinkedModelSerializer):
                     object = obj_dict
                 else:
                     # If we have a dictionary then create (TODO: or update)
-                    object = self._declared_fields[field].serializer.Meta.model(**obj_dict)
+                    object = self.fields[field].serializer.Meta.model(**obj_dict)
                     setattr(object, attr.field.name, instance)
                     object.save()
 
@@ -155,14 +155,14 @@ class ExtendedHyperlinkedSerialiser(serializers.HyperlinkedModelSerializer):
         fields = []
         related = []
         for field in validated_data.keys():
-            #print(field,type(self._declared_fields[field]))
-            if type(self._declared_fields[field]) == ExtendedModelSerialiserField:
+            #print(field,type(self.fields[field]))
+            if type(self.fields[field]) == ExtendedModelSerialiserField:
                 if validated_data[field] is not None:
                     related.append(field)
-            elif type(self._declared_fields[field]) in (ManyRelatedField, HyperlinkedRelatedField):
+            elif type(self.fields[field]) in (ManyRelatedField, HyperlinkedRelatedField):
                 related.append(field)
             # Exclude read only fields
-            elif not self._declared_fields[field].read_only:
+            elif not self.fields[field].read_only:
                 fields.append(field)
 
         # Set all valid attributes of the instance to the validated data
@@ -193,7 +193,7 @@ class ExtendedHyperlinkedSerialiser(serializers.HyperlinkedModelSerializer):
                             # Get object from url and update from deserialised dict
                             resolved_func, unused_args, resolved_kwargs = resolve(urlparse(obj_dict["url"]).path)
                             object = resolved_func.cls.queryset.get(pk=resolved_kwargs['pk'])
-                            serializer = self._declared_fields[field].serializer
+                            serializer = self.fields[field].serializer
                             
                             # If only the url is in the data then no need to update the sub-object fields or save
                             if len(obj_dict.keys()) > 1:
@@ -204,7 +204,7 @@ class ExtendedHyperlinkedSerialiser(serializers.HyperlinkedModelSerializer):
                                 need_save = False
                         else:
                             # Create object from deserialised dict
-                            object = self._declared_fields[field].serializer.Meta.model(**obj_dict)
+                            object = self.fields[field].serializer.Meta.model(**obj_dict)
                             # Note: Do not save new object until we have set the attribute to the parent depending on relationship type
 
                     if need_save:
