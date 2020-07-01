@@ -2,7 +2,6 @@ import logging
 from urllib.parse import urlparse
 
 from django.urls import resolve
-from django.utils import six
 
 from rest_framework import serializers
 
