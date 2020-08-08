@@ -1,5 +1,5 @@
 # drf-nest
-[![Build Status](https://img.shields.io/circleci/project/github/Semprini/drf-nest.svg)](https://circleci.com/gh/Semprini/drf-nest)
+[![Build Status](https://img.shields.io/circleci/project/github/Semprini/drf-nest.svg)](https://circleci.com/gh/Semprini/drf-nest) ![PyPI](https://github.com/Semprini/drf-nest/workflows/PyPI/badge.svg)
 
 Writable nested serialisers for Django Rest Framework
 
