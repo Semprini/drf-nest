@@ -58,11 +58,10 @@ def notify_save_instance(sender, instance, raw, created, serializer, exchange_pr
             
     json = JSONRenderer().render(serializer(instance, context=serializer_context()).data).decode(encoding='utf-8')
 
-    if settings.MQ_FRAMEWORK['HOST'] == 'None':
-        pass
-        #print("EXCHANGE=%s | HEADERS=%s"%(exchange_name, headers_dict))
-        #print('%s'%json)
-    else:
+    if settings.MQ_FRAMEWORK['TYPE'] == 'stdout':
+        print("TOPIC=%s | HEADERS=%s"%(exchange_name, headers_dict))
+        print('%s'%json)
+    elif settings.MQ_FRAMEWORK['TYPE'] == 'RabbitMQ':
         import pika
 
         global credentials
