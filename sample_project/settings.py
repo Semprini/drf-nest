@@ -140,8 +140,8 @@ REST_FRAMEWORK = {
 }
 
 MQ_FRAMEWORK = {
-    'HOST': 'None',
-    'USER': 'None',
+    'TYPE': 'stdout',
+    'HOST': None,
     'PASSWORD': 'None',
     'EXCHANGE_PREFIX': 'notify.',
     'HTTP_REST_CONTEXT': {
