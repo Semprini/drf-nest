@@ -18,10 +18,10 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(name='drf_nest',
-                 version='0.1a4',
+                 version='0.1a5',
                  packages=["drf_nest", ] + packages,
                  author='Semprini',
-                 author_email='dont@contact.me'
+                 author_email='dont@contact.me',
                  description='Django rest framework extension to handle writable nested fields',
                  long_description=long_description,
                  long_description_content_type='text/markdown',
