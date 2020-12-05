@@ -18,7 +18,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(name='drf_nest',
-                 version='0.1a5',
+                 version='0.2a1',
                  packages=["drf_nest", ] + packages,
                  author='Semprini',
                  author_email='dont@contact.me',
