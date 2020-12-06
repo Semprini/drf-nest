@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.utils.translation import gettext as _
 
+
 class SingleTextInputFilter(admin.FieldListFilter):
     """
     renders filter form with text input and submit button
@@ -48,4 +49,3 @@ class SingleTextInputFilter(admin.FieldListFilter):
             'all_choice': all_choice,
             'parameter_name': self.parameter_name
         }, )
-        

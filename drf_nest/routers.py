@@ -10,14 +10,14 @@ class RootView(routers.APIRootView):
     """
     name = ""
     desc = ""
-    
+
     def __init__(self, *args, **kwargs):
         if 'name' in kwargs:
             self.name = kwargs.pop('name')
         if 'desc' in kwargs:
             self.name = kwargs.pop('desc')
         super(RootView, self).__init__(*args, **kwargs)
-    
+
     def get_view_name(self):
         """
         Return the view name, as used in OPTIONS responses and in the
@@ -81,7 +81,7 @@ class NestedRegistryItem:
             current_item = current_item.parent_item
         return prefix.strip('/')
 
-    
+
 class NestedRouterMixin:
     """
     Nicked from rest framework extensions
@@ -96,21 +96,21 @@ class NestedRouterMixin:
             parent_prefix=self.registry[-1][0],
             parent_viewset=self.registry[-1][1]
         )
-        
-        
+
+
 class AppRouter(routers.DefaultRouter):
     APIRootView = RootView
-    apps: Dict[str,str] = {}
-    
+    apps: Dict[str, str] = {}
+
     def __init__(self, *args, **kwargs):
-        
+
         if 'root_view_name' in kwargs:
             self.root_view_name = kwargs.pop('root_view_name')
         if 'apps' in kwargs:
             self.apps = kwargs.pop('apps')
-        
+
         super(AppRouter, self).__init__(*args, **kwargs)
-        
+
     def get_api_root_view(self, api_urls=None):
         """
         Return a basic root view.
@@ -121,10 +121,9 @@ class AppRouter(routers.DefaultRouter):
         list_name = self.routes[0].name
         for prefix, viewset, basename in self.registry:
             api_root_dict[prefix] = list_name.format(basename=basename)
-            
-        return self.APIRootView.as_view(api_root_dict=api_root_dict,name=self.root_view_name)
+
+        return self.APIRootView.as_view(api_root_dict=api_root_dict, name=self.root_view_name)
 
 
-class NestedAppRouter( NestedRouterMixin, AppRouter ):
+class NestedAppRouter(NestedRouterMixin, AppRouter):
     pass
-    

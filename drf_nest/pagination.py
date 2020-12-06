@@ -1,7 +1,7 @@
 import sys
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
-from collections import OrderedDict 
+from collections import OrderedDict
 
 from django.core.paginator import Paginator, InvalidPage
 from django.core.cache import cache
@@ -71,7 +71,7 @@ class PerformantPaginator(Paginator):
         self._reverse_ordering = field if ordering[0] == '-' else \
             '-{0}'.format(ordering)
         self._field = field
-        
+
         super().__init__(queryset, per_page, orphans, allow_empty_first_page)
 
     def __repr__(self):
@@ -196,24 +196,22 @@ class CachedPaginator(Paginator):
                 if self._count == -1:
                     self._count = super().count
                     cache.set(key, self._count, 3600)
-
-            except:
+            except Exception:
                 self._count = len(self.object_list)
         return self._count
 
     count = property(_get_count)
 
-    
+
 class CountlessPaginator(Paginator):
     @property
     def count(self):
-        return sys.maxsize    
+        return sys.maxsize
 
-        
+
 class PageNumberPaginationWithoutCount(PageNumberPagination):
 
     django_paginator_class = PerformantPaginator
-
 
     def get_paginated_response(self, data):
         return Response(OrderedDict([
@@ -222,8 +220,7 @@ class PageNumberPaginationWithoutCount(PageNumberPagination):
             ('previous', self.get_previous_link()),
             ('results', data)
         ]))
-        
-        
+
     def paginate_queryset(self, queryset, request, view=None):
         """
         Paginate a queryset if required, either returning a
@@ -242,14 +239,14 @@ class PageNumberPaginationWithoutCount(PageNumberPagination):
             msg = self.invalid_page_message.format(
                 page_number=page_number, message=exc
             )
-            raise NotFound(msg)
+            raise InvalidPage(msg)
 
         self.display_page_controls = False
 
         self.request = request
-        return list(self.page)    
+        return list(self.page)
 
-        
+
 class PageNumberPaginationWithCachedCount(PageNumberPagination):
 
     django_paginator_class = CachedPaginator
@@ -261,5 +258,3 @@ class PageNumberPaginationWithCachedCount(PageNumberPagination):
             ('previous', self.get_previous_link()),
             ('results', data)
         ]))
-
-         
